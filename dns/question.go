@@ -3,48 +3,40 @@ package dns
 import (
 	"encoding/binary"
 	"fmt"
-	"strings"
 )
 
 type Question struct {
-	Labels []Label
-	Type   uint16
-	Class  uint16
+	Domain
+	Type  uint16
+	Class uint16
 }
 
-func NewQuestion(data []byte) (Question, int) {
+func NewQuestion(packet []byte, offset int) (Question, int) {
 	question := Question{}
-
-	offset := 0
-	for {
-		label, err := NewLabel(data[offset:])
-		if err == NO_MORE_LABELS {
-			offset += 1
-			break
-		}
-
-		question.Labels = append(question.Labels, label)
-		offset += int(label.DataLength())
-	}
+	domain, offset, _ := NewDomain(packet, offset)
+	question.Domain = domain
 
 	be := binary.BigEndian
-	question.Type = be.Uint16(data[offset:])
+	question.Type = be.Uint16(packet[offset:])
 	offset += 2
 
-	question.Class = be.Uint16(data[offset:])
+	question.Class = be.Uint16(packet[offset:])
 	offset += 2
 
 	return question, offset
 }
 
-func (question Question) Domain() string {
-	var labels []string
-	for _, l := range question.Labels {
-		labels = append(labels, l.Data)
-	}
-	return strings.Join(labels, ".")
+func (question Question) String() string {
+	return fmt.Sprintf("%v %v %v", question.Domain,
+		question.ClassName(),
+		question.TypeName(),
+	)
 }
 
-func (question Question) String() string {
-	return fmt.Sprintf("%v %v %v", question.Domain(), question.Type, question.Class)
+func (question Question) TypeName() string {
+	return Types[question.Type]
+}
+
+func (question Question) ClassName() string {
+	return Classes[question.Class]
 }

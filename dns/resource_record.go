@@ -1,45 +1,68 @@
 package dns
 
-import "encoding/binary"
+import (
+	"encoding/binary"
+	"fmt"
+
+	"github.com/aschepis/netfilter/ip"
+)
 
 type ResourceRecord struct {
-	Name     []Label
+	Domain
 	Type     uint16
 	Class    uint16
 	TTL      uint32
 	RDLength uint16
-	RData    []byte
+	RData    interface{}
 }
 
-func NewResourceRecord(data []byte) (ResourceRecord, int) {
+func NewResourceRecord(packet []byte, offset int) (ResourceRecord, int) {
 	record := ResourceRecord{}
 
-	offset := 0
-	for {
-		label, err := NewLabel(data[offset:])
-		if err == NO_MORE_LABELS {
-			offset += 1
-			break
-		}
-
-		record.Name = append(record.Name, label)
-		offset += int(label.DataLength())
-	}
+	domain, offset, _ := NewDomain(packet, offset)
+	record.Domain = domain
 
 	be := binary.BigEndian
-	record.Type = be.Uint16(data[offset:])
+	record.Type = be.Uint16(packet[offset:])
 	offset += 2
 
-	record.Class = be.Uint16(data[offset:])
+	record.Class = be.Uint16(packet[offset:])
 	offset += 2
 
-	record.TTL = be.Uint32(data[offset:])
+	record.TTL = be.Uint32(packet[offset:])
 	offset += 4
 
-	record.RDLength = be.Uint16(data[offset:])
+	record.RDLength = be.Uint16(packet[offset:])
 	offset += 2
 
-	record.RData = data[offset : offset+int(record.RDLength)]
-	offset += int(record.RDLength)
+	offset = record.makeRData(packet, offset)
+
 	return record, offset
+}
+
+func (record *ResourceRecord) makeRData(packet []byte, offset int) int {
+	switch record.Type {
+	case 1:
+		be := binary.BigEndian
+		record.RData = ip.IPAddr(be.Uint32(packet[offset:]))
+	case 5:
+		domain, _, _ := NewDomain(packet, offset)
+		record.RData = domain
+	}
+	return offset + int(record.RDLength)
+}
+
+func (record ResourceRecord) String() string {
+	return fmt.Sprintf("%v %v %v: %v", record.Domain,
+		record.ClassName(),
+		record.TypeName(),
+		record.RData)
+}
+
+func (record ResourceRecord) TypeName() string {
+	return Types[record.Type]
+}
+
+func (record ResourceRecord) ClassName() string {
+	return Classes[record.Class]
 }

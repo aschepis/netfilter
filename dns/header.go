@@ -46,7 +46,7 @@ func NewHeader(data []byte) Header {
 }
 
 func (header Header) PacketType() uint8 {
-	return header.info & 0x01
+	return header.info >> 7
 }
 
 func (header Header) PacketTypeString() string {

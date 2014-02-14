@@ -22,43 +22,41 @@ func NewPacket(packetData []byte) (*Packet, error) {
 		Header: NewHeader(packetData),
 	}
 
-	packetData = packetData[HEADER_LEN:]
-
-	q, packetData, _ := unpackQuestions(packet.Header.QDCount, packetData)
+	q, offset, _ := unpackQuestions(packet.Header.QDCount, packetData, HEADER_LEN)
 	packet.Questions = q
 
-	r, packetData, _ := unpackRecords(packet.Header.ANCount, packetData)
+	r, offset, _ := unpackRecords(packet.Header.ANCount, packetData, offset)
 	packet.Answers = r
 
-	r, packetData, _ = unpackRecords(packet.Header.ANCount, packetData)
+	r, offset, _ = unpackRecords(packet.Header.NSCount, packetData, offset)
 	packet.NameServers = r
 
-	r, packetData, _ = unpackRecords(packet.Header.ANCount, packetData)
+	r, offset, _ = unpackRecords(packet.Header.ARCount, packetData, offset)
 	packet.AdditionalRecords = r
 
 	return packet, nil
 }
 
-func unpackQuestions(count uint16, packetData []byte) ([]Question, []byte, error) {
+func unpackQuestions(count uint16, packetData []byte, offset int) ([]Question, int, error) {
 	questions := make([]Question, 0)
 	for i := 0; i < int(count); i++ {
-		question, size := NewQuestion(packetData)
-		packetData = packetData[size:]
+		question, newOffset := NewQuestion(packetData, offset)
+		offset = newOffset
 		questions = append(questions, question)
 	}
 
-	return questions, packetData, nil
+	return questions, offset, nil
 }
 
-func unpackRecords(count uint16, packetData []byte) ([]ResourceRecord, []byte, error) {
+func unpackRecords(count uint16, packetData []byte, offset int) ([]ResourceRecord, int, error) {
 	records := make([]ResourceRecord, 0)
 	for i := 0; i < int(count); i++ {
-		record, size := NewResourceRecord(packetData)
-		packetData = packetData[size:]
+		record, newOffset := NewResourceRecord(packetData, offset)
+		offset = newOffset
 		records = append(records, record)
 	}
 
-	return records, packetData, nil
+	return records, offset, nil
 }
 
 func (packet *Packet) IsValid() bool {

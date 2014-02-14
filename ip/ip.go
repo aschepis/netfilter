@@ -1,9 +1,6 @@
 package ip
 
-import (
-	"encoding/binary"
-	"fmt"
-)
+import "encoding/binary"
 
 const (
 	MIN_HEADER_LENGTH = 20
@@ -15,7 +12,6 @@ const (
 	PROTO_UDP = 17
 )
 
-type IPAddr4 uint32
 type Header4 struct {
 	VersionIHL      byte
 	Tos             byte
@@ -32,7 +28,6 @@ type Header4 struct {
 	ValidChecksum bool
 }
 
-type IPAddr IPAddr4
 type Header Header4
 
 func NewHeader(packet []byte) *Header {
@@ -63,9 +58,7 @@ func (header *Header) Version() byte {
 }
 
 func formatIP(ip IPAddr) string {
-	return fmt.Sprintf("%d.%d.%d.%d", byte(ip>>24),
-		byte(ip>>16), byte(ip>>8),
-		byte(ip))
+	return ip.String()
 }
 
 func (header *Header) SourceIP() string {

@@ -48,11 +48,11 @@ func TestDNSHeader(t *testing.T) {
 
 	packet, _ := NewPacket(packetData)
 	fmt.Println(packet)
-	fmt.Println("----------")
+	fmt.Println(",.-=~^~=-.,.-=~^~=-.,.-=~^~=-.,.-=~^~=-.,.-=~^~=-.,.-=~^~=-.,.-=~^~=-.,")
 
 	packet2, _ := NewPacket(packetData2)
 	fmt.Println(packet2)
-	fmt.Println("----------")
+	fmt.Println(",.-=~^~=-.,.-=~^~=-.,.-=~^~=-.,.-=~^~=-.,.-=~^~=-.,.-=~^~=-.,.-=~^~=-.,")
 
 	packet3, _ := NewPacket(packetData3)
 	fmt.Println(packet3)
