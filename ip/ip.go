@@ -21,8 +21,8 @@ type Header4 struct {
 	TTL             byte
 	Protocol        byte
 	Checksum        uint16
-	Source          IPAddr
-	Dest            IPAddr
+	Source          Addr4
+	Dest            Addr4
 	Options         uint64
 
 	ValidChecksum bool
@@ -44,8 +44,8 @@ func NewHeader(packet []byte) *Header {
 	header.TTL = packet[8]
 	header.Protocol = packet[9]
 	header.Checksum = le.Uint16(packet[10:])
-	header.Source = IPAddr(be.Uint32(packet[12:]))
-	header.Dest = IPAddr(be.Uint32(packet[16:]))
+	header.Source = Addr4(be.Uint32(packet[12:]))
+	header.Dest = Addr4(be.Uint32(packet[16:]))
 	// header.Options = le.Uint64(packet[20:])
 
 	header.ValidChecksum = validChecksum(packet)
@@ -57,7 +57,7 @@ func (header *Header) Version() byte {
 	return header.VersionIHL >> 4
 }
 
-func formatIP(ip IPAddr) string {
+func formatIP(ip Addr4) string {
 	return ip.String()
 }
 

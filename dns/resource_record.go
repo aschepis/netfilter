@@ -44,7 +44,8 @@ func (record *ResourceRecord) makeRData(packet []byte, offset int) int {
 	switch record.Type {
 	case 1:
 		be := binary.BigEndian
-		record.RData = ip.IPAddr(be.Uint32(packet[offset:]))
+		addr4 := ip.Addr4(be.Uint32(packet[offset:]))
+		record.RData = ip.NewAddr4(addr4)
 	case 5:
 		domain, _, _ := NewDomain(packet, offset)
 		record.RData = domain
